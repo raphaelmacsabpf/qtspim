@@ -42,7 +42,7 @@ main:
 		li	$v0, 5
 		syscall
 		add	$4, $zero, $v0 #O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
-		jal FUNCAO_INSERIR
+		jal FUNCAO_INSERIR #Chama a função para inserir o elemento
 		
 		j PRINTA_MENU
     OPCAO_2:
@@ -57,10 +57,21 @@ main:
 	
 	
 	FUNCAO_INSERIR:
-    #debuguer
+    #debug
     li	$v0, 4
 	la	$a0, SSS_T1
 	syscall
+	#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
+
+	bne $9,$0, DESVIO_OPC1_IF1
+	#COMEÇA A ALOCAR
+	li $v0, 9
+	li $a0, 8
+	syscall
+	#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
+	add $8, $zero, $v0 #COPIO O ENDEREÇO QUE FOI ALOCADO PARA O INICIO DA LISTA QUE É $8
+	DESVIO_OPC1_IF1
+	lw $12, 0($8)	#//MESMO QUE NÃO EXISTA INFORMAÇÕES ELE CARREGA NO REGISTRADOR 12 O VALOR CONTIDO NO PRIMEIRO ELEMENTO DA LISTA
 	
 	
 	
