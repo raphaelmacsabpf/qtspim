@@ -100,7 +100,15 @@ main:
 								la	$a0, SSS_T1
 								syscall
 								#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
+	beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
+	
 	jr $ra
+	PRINTA_LISTA_VAZIA:
+ 	#IMPRIME MENSAGEM DE LISTA VAZIA
+        li	$v0, 4
+		la	$a0, SSS_2
+		syscall
+		jr $ra
 	#FINAL DA FUNÇÃO DE IMPRIMIR
 	
 	
