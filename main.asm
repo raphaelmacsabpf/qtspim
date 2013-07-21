@@ -2,6 +2,8 @@
 SSS_0:  .asciiz     "MENU\n           1 - Inserir\n           2 - Remover por indice\n           3 - Remover por valor\n           4 - Listar todos\n           5 - Sair\n"
 SSS_1:  .asciiz     "Digite o item que voce quer inserir na lista\n"
 SSS_2:  .asciiz     "--Lista Vazia\n"
+SSS_3:  .asciiz     "\nElemento "
+SSS_4:  .asciiz     "\n"
 #TEMPORARIOS
 SSS_T1:  .asciiz     "Entrou na função\n"
 
@@ -94,14 +96,37 @@ main:
     jr $ra
 	#FINAL DA FUNÇÃO DE INSERIR
 	
+	
+	
+	
 	FUNCAO_IMPRIMIR:
+	li $s3, 59
 	                            #debug
 							    li	$v0, 4
 								la	$a0, SSS_T1
 								syscall
 								#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
 	beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
-	
+	add $13, $5, $zero                     #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
+	LACO_OPC4:
+		lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
+	    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
+	    #IMPRIME MENSAGEM DE ELEMENTO
+        li	$v0, 4
+		la	$a0, SSS_3
+		syscall
+		#IMPRIME O ELEMENTO
+        li	$v0, 1
+		add $a0, $14 ,$0                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		syscall
+		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
+        li	$v0, 4
+		la	$a0, SSS_4
+		syscall
+		beq $15, $zero, FINAL_DO_IMPRIMIR       #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
+		add $13, $15, $zero                     #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+		j LACO_OPC4                             #//RETORNA PARA O INICIO DO LACO
+	FINAL_DO_IMPRIMIR:
 	jr $ra
 	PRINTA_LISTA_VAZIA:
  	#IMPRIME MENSAGEM DE LISTA VAZIA
