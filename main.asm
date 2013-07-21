@@ -57,13 +57,12 @@ main:
 	
 	
 	FUNCAO_INSERIR:
-    #debug
-    li	$v0, 4
-	la	$a0, SSS_T1
-	syscall
-	#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
-
 	bne $9,$0, DESVIO_OPC1_IF1
+	    #debug
+	    li	$v0, 4
+		la	$a0, SSS_T1
+		syscall
+		#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
 		#COMEÇA A ALOCAR
 		li $v0, 9
 		li $a0, 8
