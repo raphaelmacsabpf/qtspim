@@ -7,5 +7,10 @@ SSS_2:  .asciiz     "--Lista Vazia\n"
 	.text
 main:
 
-	addi  $2, $0, 4937
+	add  $9, $0, $0 #ATRIBUI O CONTADOR DE ITENS NA LISTA PARA ZERO
+	PRINTA_MENU:
+	li	$v0, 4			#Imprimindo o Menu
+	la	$a0, SSS_0
+	syscall
+	#FIM DA IMPRESSÃO DO MENU
 
