@@ -5,10 +5,8 @@ SSS_2:  .asciiz     "--Lista Vazia\n"
 SSS_3:  .asciiz     "\nElemento "
 SSS_4:  .asciiz     "\n"
 #TEMPORARIOS
-SSS_T1:  .asciiz     "Entrou na função1\n"
-SSS_T2:  .asciiz     "Entrou na função2\n"
-SSS_T3:  .asciiz     "Entrou na função3\n"
-SSS_T4:  .asciiz     "Entrou na função4\n"
+SSS_T1:  .asciiz     "Entrou na função\n"
+
 
 	.text
 main:
@@ -61,36 +59,26 @@ main:
 		jal FUNCAO_IMPRIMIR
 		j PRINTA_MENU
     OPCAO_5:
-		#CÓDIGO PARA FINALIZAR O PROGRAMA
-		li $v0, 10
-		syscall
+		#code
+		j PRINTA_MENU
 	
 	
 	
 	FUNCAO_INSERIR:
-	add $14, $zero, $4                      #//COPIA O PARAMETRO RECEBIDO PARA O REGISTRADOR TEMPORARIO 14
-    add $15, $zero, $5                      #//COPIA O ENDEREÇO DA LISTA PARA O REGISTRADOR TEMPORARIO 15
 	bne $9,$0, DESVIO_OPC1_IF1
 		#COMEÇA A ALOCAR
 		li $v0, 9
 		li $a0, 8
 		syscall
 		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
-		add $15, $zero, $v0 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA O INICIO DA LISTA QUE É $15
-        sw $14, 0($15)		#//COLOCA O VALOR ESCOLHIDO COMO PRIMEIRO ELEMENTO DA LISTA
-        sw $zero,4($15) 		#//O PRÓXIMO ELEMENTO DA LISTA É NULO QUE NESTE CASO É ZERO
+		add $8, $zero, $v0 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA O INICIO DA LISTA QUE É $8
+        sw $4, 0($8)		#//COLOCA O VALOR ESCOLHIDO COMO PRIMEIRO ELEMENTO DA LISTA
+        sw $zero,4($8) 		#//O PRÓXIMO ELEMENTO DA LISTA É NULO QUE NESTE CASO É ZERO
         addi $9,$9,1		#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
-        
-        						#debug
-							    li	$v0, 4
-								la	$a0, SSS_T2
-								syscall
-								#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
-        
         j FINAL_DOS_IFS_OPC1
 	DESVIO_OPC1_IF1:
-	lw $12, 0($15)			#//MESMO QUE NÃO EXISTA INFORMAÇÕES ELE CARREGA NO REGISTRADOR 12 O VALOR CONTIDO NO PRIMEIRO ELEMENTO DA LISTA
-	slt $12, $14, $12 		#//SETA O REGISTRADOR 12 COMO 1 SE O PRIMEIRO ELEMENTO DA LISTA FORMENOR QUE ELE
+	lw $12, 0($5)			#//MESMO QUE NÃO EXISTA INFORMAÇÕES ELE CARREGA NO REGISTRADOR 12 O VALOR CONTIDO NO PRIMEIRO ELEMENTO DA LISTA
+	slt $12, $4, $12 		#//SETA O REGISTRADOR 12 COMO 1 SE O PRIMEIRO ELEMENTO DA LISTA FORMENOR QUE ELE
 	beq $12, $zero, DESVIO_OPC1_IF2         #//SE O SLT DEU FALSO ELE DESVIA
 	    #COMEÇA A ALOCAR
 		li $v0, 9
@@ -98,17 +86,10 @@ main:
 		syscall
 		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
 		add $13, $zero, $v0 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA MEU NODO TEMPORARIO REG 13
-	    sw $14,0($13)            #//GUARDA O ELEMENTO NO NODO TEMPORARIO 13
+	    sw $4,0($13)            #//GUARDA O ELEMENTO NO NODO TEMPORARIO 13
         sw $5, 4($13)           #//COLOCA O ANTIGO PRIMEIRO ELEMENTO DA LISTA COMO PRÓXIMO DO NOVO PRIMEIRO
-        add $15, $zero, $13		#//ATUALIZA O NOVO PRIMEIRO ELEMENTO
+        add $5, $zero, $13		#//ATUALIZA O NOVO PRIMEIRO ELEMENTO
         addi $9, $9, 1			#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
-        
-                                #debug
-							    li	$v0, 4
-								la	$a0, SSS_T3
-								syscall
-								#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
-        
 	DESVIO_OPC1_IF2:
 		#CONTINUAR AQUI DEPOIS
 	FINAL_DOS_IFS_OPC1:
