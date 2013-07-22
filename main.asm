@@ -12,9 +12,6 @@ SSS_T1:  .asciiz     "Entrou na função\n"
 main:
 
 	add  $9, $0, $0 #//ATRIBUI O CONTADOR DE ITENS NA LISTA PARA ZERO
-	addi $16, $zero, 17
-	addi $17, $zero, 18
-	mov $19, $16
 	PRINTA_MENU:
 	#IMPRIMINDO O MENU
 	li	$v0, 4			
@@ -47,7 +44,7 @@ main:
 		li	$v0, 5
 		syscall
 		add	$4, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
-        add	$5, $zero, $8       #//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
+        la $5,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
 		jal FUNCAO_INSERIR 		#//Chama a função para inserir o elemento
 		
 		j PRINTA_MENU
@@ -58,7 +55,7 @@ main:
 		#code
 		j PRINTA_MENU
     OPCAO_4:
-		add	$5, $zero, $8
+		la	$5, ($8)
 		jal FUNCAO_IMPRIMIR
 		j PRINTA_MENU
     OPCAO_5:
@@ -76,7 +73,7 @@ main:
 		li $a0, 8
 		syscall
 		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
-		add $15, $zero, $v0 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA O INICIO DA LISTA QUE É $8
+		la $15, ($v0)	 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA O INICIO DA LISTA QUE É $8
         sw $14, 0($15)		#//COLOCA O VALOR ESCOLHIDO COMO PRIMEIRO ELEMENTO DA LISTA
         sw $zero,4($15) 		#//O PRÓXIMO ELEMENTO DA LISTA É NULO QUE NESTE CASO É ZERO
         addi $9,$9,1		#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
@@ -90,10 +87,10 @@ main:
 		li $a0, 8
 		syscall
 		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
-		add $13, $zero, $v0 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA MEU NODO TEMPORARIO REG 13
+		la $13, ($v0)			 #//COPIO O ENDEREÇO QUE FOI ALOCADO PARA MEU NODO TEMPORARIO REG 13
 	    sw $14,0($13)            #//GUARDA O ELEMENTO NO NODO TEMPORARIO 13
         sw $15, 4($13)           #//COLOCA O ANTIGO PRIMEIRO ELEMENTO DA LISTA COMO PRÓXIMO DO NOVO PRIMEIRO
-        add $15, $zero, $13		#//ATUALIZA O NOVO PRIMEIRO ELEMENTO
+        la $15, ($13)            #//ATUALIZA O NOVO PRIMEIRO ELEMENTO
         addi $9, $9, 1			#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
 	DESVIO_OPC1_IF2:
 		#CONTINUAR AQUI DEPOIS
@@ -105,14 +102,14 @@ main:
 	
 	
 	FUNCAO_IMPRIMIR:
-	add $16, $zero, $5
+	la $16, ($5)
 	                            #debug
 							    li	$v0, 4
 								la	$a0, SSS_T1
 								syscall
 								#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
 	beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
-	add $13, $16, $zero                     #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
+	la $13, ($16)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
 	LACO_OPC4:
 		lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
 	    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
@@ -129,7 +126,7 @@ main:
 		la	$a0, SSS_4
 		syscall
 		beq $15, $zero, FINAL_DO_IMPRIMIR       #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
-		add $13, $15, $zero                     #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+		la $13, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
 		j LACO_OPC4                             #//RETORNA PARA O INICIO DO LACO
 	FINAL_DO_IMPRIMIR:
 	jr $ra
