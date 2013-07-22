@@ -102,14 +102,14 @@ main:
 	
 	
 	FUNCAO_IMPRIMIR:
-	li $s3, 59
+	add $16, $zero, $5
 	                            #debug
 							    li	$v0, 4
 								la	$a0, SSS_T1
 								syscall
 								#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
 	beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
-	add $13, $5, $zero                     #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
+	add $13, $16, $zero                     #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
 	LACO_OPC4:
 		lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
 	    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
