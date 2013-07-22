@@ -12,6 +12,9 @@ SSS_T1:  .asciiz     "Entrou na função\n"
 main:
 
 	add  $9, $0, $0 #//ATRIBUI O CONTADOR DE ITENS NA LISTA PARA ZERO
+	addi $16, $zero, 17
+	addi $17, $zero, 18
+	mov $19, $16
 	PRINTA_MENU:
 	#IMPRIMINDO O MENU
 	li	$v0, 4			
