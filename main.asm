@@ -2,8 +2,9 @@
 SSS_0:  .asciiz     "MENU\n           1 - Inserir\n           2 - Remover por indice\n           3 - Remover por valor\n           4 - Listar todos\n           5 - Sair\n"
 SSS_1:  .asciiz     "Digite o item que voce quer inserir na lista\n"
 SSS_2:  .asciiz     "--Lista Vazia\n"
-SSS_3:  .asciiz     "\nElemento "
+SSS_3:  .asciiz     "Elemento "
 SSS_4:  .asciiz     "\n"
+SSS_5:  .asciiz     "Elemento inserido no indice "
 #TEMPORARIOS
 SSS_T1:  .asciiz     "Entrou na função\n"
 
@@ -56,6 +57,22 @@ main:
 		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
         la $25,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
 		jal FUNCAO_INSERIR 		#//Chama a função para inserir o elemento
+		bne $19, $0, DESVIA_ALTERA_PRIMEIRO
+		    la $8, ($25)
+		DESVIA_ALTERA_PRIMEIRO:
+		#IMPRIME MENSAGEM PEDINDO ELEMENTO
+        li	$v0, 4
+		la	$a0, SSS_5
+		syscall
+		#IMPRIME O INDICE
+        li	$v0, 1
+		add $a0, $19 ,$0                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		syscall
+		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
+        li	$v0, 4
+		la	$a0, SSS_4
+		syscall
+		
 		
 		j PRINTA_MENU
     OPCAO_2:
@@ -77,6 +94,7 @@ main:
 	FUNCAO_INSERIR:
 	la $14, ($24)#//INFORMAÇÃO
 	la $15, ($25)#//ENDEREÇO DA LISTA
+	#SE FOR O PRIMEIRO A SER INSERIDO
 	bne $9,$0, DESVIO_OPC1_IF1
 		#COMEÇA A ALOCAR
 		li $v0, 9
@@ -84,12 +102,14 @@ main:
 		syscall
 		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
 		la $23, ($v0)	 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA O INICIO DA LISTA QUE É $8
-        sw $14, 0($15)		#//COLOCA O VALOR ESCOLHIDO COMO PRIMEIRO ELEMENTO DA LISTA
-        sw $zero,4($15) 	#//O PRÓXIMO ELEMENTO DA LISTA É NULO QUE NESTE CASO É ZERO
+        sw $14, 0($23)		#//COLOCA O VALOR ESCOLHIDO COMO PRIMEIRO ELEMENTO DA LISTA
+        sw $zero,4($23) 	#//O PRÓXIMO ELEMENTO DA LISTA É NULO QUE NESTE CASO É ZERO
         addi $9,$9,1		#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
-        la $15, ($23)
+        la $25, ($23)
+        add $19, $0,$0      #//O INDICE DE RETORNO INSERIDO É 0 NESTE CASO
         j FINAL_DOS_IFS_OPC1
 	DESVIO_OPC1_IF1:
+	#SE FOR MENOR QUE O PRIMEIRO
 	lw $12, 0($15)			#//MESMO QUE NÃO EXISTA INFORMAÇÕES ELE CARREGA NO REGISTRADOR 12 O VALOR CONTIDO NO PRIMEIRO ELEMENTO DA LISTA
 	slt $12, $14, $12 		#//SETA O REGISTRADOR 12 COMO 1 SE O PRIMEIRO ELEMENTO DA LISTA FORMENOR QUE ELE
 	beq $12, $zero, DESVIO_OPC1_IF2         #//SE O SLT DEU FALSO ELE DESVIA
@@ -98,15 +118,47 @@ main:
 		li $a0, 8
 		syscall
 		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
-		la $17, ($8)
+		la $17, ($15)
 		la $13, ($v0)			 #//COPIO O ENDEREÇO QUE FOI ALOCADO PARA MEU NODO TEMPORARIO REG 13
 	    sw $14,0($13)            #//GUARDA O ELEMENTO NO NODO TEMPORARIO 13
         
-        la $8, ($13)            #//ATUALIZA O NOVO PRIMEIRO ELEMENTO
-        sw $17, 4($8)           #//COLOCA O ANTIGO PRIMEIRO ELEMENTO DA LISTA COMO PRÓXIMO DO NOVO PRIMEIRO
+        la $15, ($13)            #//ATUALIZA O NOVO PRIMEIRO ELEMENTO
+        sw $17, 4($15)           #//COLOCA O ANTIGO PRIMEIRO ELEMENTO DA LISTA COMO PRÓXIMO DO NOVO PRIMEIRO
         addi $9, $9, 1			#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
+        add $19, $0,$0      	#//O INDICE DE RETORNO INSERIDO É 0 NESTE CASO
+        la $25, ($15)
+        j FINAL_DOS_IFS_OPC1
 	DESVIO_OPC1_IF2:
-		#CONTINUAR AQUI DEPOIS
+	#SE FOR MAIOR QUE O PRIMEIRO AI JA ENSERE ORDENADO
+    	#COMEÇA A ALOCAR
+		li $v0, 9
+		li $a0, 8
+		syscall
+		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
+		la $13, ($v0)			 #//COPIO O ENDEREÇO QUE FOI ALOCADO PARA MEU NODO TEMPORARIO REG 13
+		sw $14, 0($13)           #//INSERE A INFORMAÇÃO
+		sw $zero, 4($13)         #//COLOCA O PROXIMO ELEMENTO COMO ZERO PARA QUE NÃO DE ERRO QUANDO FOR O ÚLTIMO
+		la $18, ($15)            #//CARREGA PARA O REG 18 UMA CÓPIA DO PRIMEIRO ELEMENTO DA LISTA
+		add $19, $zero, $zero    #//ESTE REGISTRADOR GUARDA O NÚMERO DE ITERAÇÕES
+FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
+		beq $20, $zero, DESVIO_OPC1_FOR
+			lw $10, 0($18)
+			slt $20, $10, $14
+			beq $20, $zero, DESVIO_OPC1_SET
+				la $11, ($18)
+			DESVIO_OPC1_SET:
+			lw $21, 4($18)
+			beq $21, $zero, DESVIO_OPC1_PROXIMO_ZERADO
+			lw $18, 4($18)
+			DESVIO_OPC1_PROXIMO_ZERADO:
+			addi $19,$19, 1
+			j FOR_1
+        DESVIO_OPC1_FOR:
+        lw $12, 4($11)
+		sw $12, 4($13)
+		sw $13, 4($11)
+		addi $9, $9, 1
+		j FINAL_DOS_IFS_OPC1
 	FINAL_DOS_IFS_OPC1:
     jr $ra
 	#FINAL DA FUNÇÃO DE INSERIR
