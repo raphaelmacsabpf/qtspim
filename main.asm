@@ -140,11 +140,14 @@ main:
 		sw $zero, 4($13)         #//COLOCA O PROXIMO ELEMENTO COMO ZERO PARA QUE NÃO DE ERRO QUANDO FOR O ÚLTIMO
 		la $18, ($15)            #//CARREGA PARA O REG 18 UMA CÓPIA DO PRIMEIRO ELEMENTO DA LISTA
 		add $19, $zero, $zero    #//ESTE REGISTRADOR GUARDA O NÚMERO DE ITERAÇÕES
+		add $23, $zero, $zero
 FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
 		beq $20, $zero, DESVIO_OPC1_FOR
 			lw $10, 0($18)
 			slt $20, $10, $14
+			
 			beq $20, $zero, DESVIO_OPC1_SET
+			    addi $23, $23, 1
 				la $11, ($18)
 			DESVIO_OPC1_SET:
 			lw $21, 4($18)
@@ -158,6 +161,7 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		sw $12, 4($13)
 		sw $13, 4($11)
 		addi $9, $9, 1
+		add $19, $23, $zero
 		j FINAL_DOS_IFS_OPC1
 	FINAL_DOS_IFS_OPC1:
     jr $ra
