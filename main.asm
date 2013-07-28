@@ -5,6 +5,7 @@ SSS_2:  .asciiz     "--Lista Vazia\n"
 SSS_3:  .asciiz     "Elemento "
 SSS_4:  .asciiz     "\n"
 SSS_5:  .asciiz     "Elemento inserido no indice "
+SSS_6:  .asciiz     "Digite o indice do item que voce quer remover da lista\n"
 #TEMPORARIOS
 SSS_T1:  .asciiz     "Entrou na função\n"
 
@@ -46,7 +47,7 @@ main:
     beq $10,$11, OPCAO_5
     j PRINTA_MENU
     
-    OPCAO_1:
+    OPCAO_1:#//Inserir
         #IMPRIME MENSAGEM PEDINDO ELEMENTO
         li	$v0, 4
 		la	$a0, SSS_1
@@ -75,19 +76,28 @@ main:
 		
 		
 		j PRINTA_MENU
-    OPCAO_2:
+    OPCAO_2:#//Remover por índice
+		#IMPRIME MENSAGEM PEDINDO INDICE
+        li	$v0, 4
+		la	$a0, SSS_6
+		syscall
+		#LE O ITEM DA LISTA A SER INSERIDO E GUARDA NO REGISTRADOR $4
+		li	$v0, 5
+		syscall
+		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
+        la $25,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
+        jal FUNCAO_REMOVER_INDICE
+		j PRINTA_MENU
+    OPCAO_3:#//REmover por valor
 		#code
 		j PRINTA_MENU
-    OPCAO_3:
-		#code
-		j PRINTA_MENU
-    OPCAO_4:
+    OPCAO_4:#//Imprimir
 		la	$25, ($8)
 		jal FUNCAO_IMPRIMIR
 		j PRINTA_MENU
-    OPCAO_5:
-		#code
-		j PRINTA_MENU
+    OPCAO_5:#//Sair do programa
+		li	$v0, 10								#//Finaliza o programa
+		syscall
 	
 	
 	
@@ -118,6 +128,10 @@ main:
 		li $a0, 8
 		syscall
 		#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
+		bne $v0, $zero, POS_VERFICACAO
+		    addi $19, $23, -1 #retorna -1
+			j FINAL_DOS_IFS_OPC1
+		POS_VERFICACAO:
 		la $17, ($15)
 		la $13, ($v0)			 #//COPIO O ENDEREÇO QUE FOI ALOCADO PARA MEU NODO TEMPORARIO REG 13
 	    sw $14,0($13)            #//GUARDA O ELEMENTO NO NODO TEMPORARIO 13
@@ -167,11 +181,40 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
     jr $ra
 	#FINAL DA FUNÇÃO DE INSERIR
 	
-	
+	FUNCAO_REMOVER_INDICE:
+	    la $21, ($24)#//INDICE
+		la $22, ($25)#//ENDEREÇO DA LISTA
+		
+		beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
+		la $13, ($22)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
+		add $17, $zero, $zero                 #//Registrador 17 será o contador de iteradas
+		addi $12, $zero, 1                      #//CARREGA VALOR 1 PARA VERIFICAR SE SO TEM UMELEMTO
+	    bne $9, $12,FIM_BNE_OPC2_1           #//VERIFICA SE A LISTA SO TEM UM ELEMENTO
+			sw $zero, 0($22)                        #//COLOCA 0 COMO INFORMAÇÃO DA LISTA
+			sw $zero, 4($22)                        #//COLOCA 0 COMO PROXIMO DALISTA DA LISTA
+			addi $9, $9, -1                         #//DECREMENTA O CONTADOR DE ITENS
+			j FIM_REMOCAO
+        FIM_BNE_OPC2_1:
+		LACO_OPC2:
+			lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
+		    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
+			
+		    
+		    	beq $21, $17 FINAL_DA_PESQUISA          #//ENCONTROU O ENDEREÇO DESEJADO
+			FIM_ELSE:
+			beq $15, $zero, FINAL_DA_PESQUISA      #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
+			la $13, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+			addi $17, $17, 1
+			j LACO_OPC2                             #//RETORNA PARA O INICIO DO LACO
+	FINAL_DA_PESQUISA:
+
+	FIM_REMOCAO:
+		
+	jr $ra
 	
 	
 	FUNCAO_IMPRIMIR:
-	la $16, ($25)
+	la $16, ($25)#//ENDEREÇO DA LISTA
 	                            #debug
 							    li	$v0, 4
 								la	$a0, SSS_T1
@@ -199,6 +242,8 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		j LACO_OPC4                             #//RETORNA PARA O INICIO DO LACO
 	FINAL_DO_IMPRIMIR:
 	jr $ra
+	
+	
 	PRINTA_LISTA_VAZIA:
  	#IMPRIME MENSAGEM DE LISTA VAZIA
         li	$v0, 4
@@ -206,5 +251,3 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		syscall
 		jr $ra
 	#FINAL DA FUNÇÃO DE IMPRIMIR
-	
-	
