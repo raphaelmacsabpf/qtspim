@@ -190,6 +190,7 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		add $17, $zero, $zero                 #//Registrador 17 será o contador de iteradas
 		addi $12, $zero, 1                      #//CARREGA VALOR 1 PARA VERIFICAR SE SO TEM UMELEMTO
 	    bne $9, $12,FIM_BNE_OPC2_1           #//VERIFICA SE A LISTA SO TEM UM ELEMENTO
+	    bne $21, $zero, FIM_BNE_OPC2_1       #//E VERIFICA TAMBÉM SE O INDICE É ZERO
 			sw $zero, 0($22)                        #//COLOCA 0 COMO INFORMAÇÃO DA LISTA
 			sw $zero, 4($22)                        #//COLOCA 0 COMO PROXIMO DALISTA DA LISTA
 			addi $9, $9, -1                         #//DECREMENTA O CONTADOR DE ITENS
@@ -198,16 +199,36 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		LACO_OPC2:
 			lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
 		    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
-			
-		    
-		    	beq $21, $17 FINAL_DA_PESQUISA          #//ENCONTROU O ENDEREÇO DESEJADO
-			FIM_ELSE:
+	    	beq $21, $17 FINAL_DA_PESQUISA          #//ENCONTROU O ENDEREÇO DESEJADO
 			beq $15, $zero, FINAL_DA_PESQUISA      #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
 			la $13, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
 			addi $17, $17, 1
 			j LACO_OPC2                             #//RETORNA PARA O INICIO DO LACO
-	FINAL_DA_PESQUISA:
-
+		FINAL_DA_PESQUISA:
+		beq $13,$22, DESVIO_REMOVE_FIRST            #//DESVIA PARA A OPÇÃO DE REMOVER O PRIMEIRO DA LISTA
+		lw $17, 4($13)
+		beq $17, $zero, DESVIO_REMOVE_LAST
+		j FIM_IFS_OPC2
+		
+		DESVIO_REMOVE_FIRST:
+		lw $17, 4($22)
+		la $8, ($17)
+		addi $9, $9 -1
+        j FIM_IFS_OPC2
+		
+		DESVIO_REMOVE_LAST:
+			la $12, ($22)
+            LACO_OPC2_REMOVE_LAST:
+		    lw $15, 4($12)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
+	    	beq $15, $13 FINAL_DA_PESQUISA_REMOVE_LAST          #//ENCONTROU O ENDEREÇO DESEJADO
+			la $12, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+			j LACO_OPC2_REMOVE_LAST                             #//RETORNA PARA O INICIO DO LACO
+			FINAL_DA_PESQUISA_REMOVE_LAST:
+			sw $zero, 4($12)
+		j FIM_IFS_OPC2
+		FIM_IFS_OPC2:
+		addi $9, $9 -1
+		
 	FIM_REMOCAO:
 		
 	jr $ra
