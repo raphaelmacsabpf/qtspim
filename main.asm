@@ -14,7 +14,14 @@ SSS_T1:  .asciiz     "Entrou na função\n"
 	.text
 main:
 
-	add  $9, $0, $0 #//ATRIBUI O CONTADOR DE ITENS NA LISTA PARA ZERO
+	add  $9, $zero, $zero #//ATRIBUI O CONTADOR DE ITENS NA LISTA PARA ZERO
+	#ALOCA OS BYTES DE INFORMAÇÕES GERAIS
+	    #DESLOCAMENTO 0 = NUMERO DE INSERÇÕES
+	    #DESLOCAMENTO 4 = NUMERO DE REMOÇÕES
+		li $v0, 9
+		li $a0, 8
+		syscall
+	    la $20 ($v0)        #//ESTE ENDEREÇO É SALVO NO REG 20
 	
 	#COMEÇA A ALOCAR O ELEMENTO DE TESTE
 	li $v0, 9
@@ -36,15 +43,15 @@ main:
 	syscall
 	add	$10, $zero, $v0      #//$10 É ONDE FICA ARMAZENADO A OPÇÃO QUE O USUÁRIO ESCOLHEU
 	#FIM DE LEITURA DA OPÇÃO DIGITADA
-	addi $11, $0, 1 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
+	addi $11, $zero, 1 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
     beq $10,$11, OPCAO_1
-    addi $11, $0, 2 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
+    addi $11, $zero, 2 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
     beq $10,$11, OPCAO_2
-    addi $11, $0, 3 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
+    addi $11, $zero, 3 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
     beq $10,$11, OPCAO_3
-    addi $11, $0, 4 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
+    addi $11, $zero, 4 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
     beq $10,$11, OPCAO_4
-    addi $11, $0, 5 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
+    addi $11, $zero, 5 #//COLOCA NO REGISTRADOR 11 O NUMERO PARA A COMPARAÇÃO
     beq $10,$11, OPCAO_5
     j PRINTA_MENU
     
@@ -59,7 +66,7 @@ main:
 		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
         la $25,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
 		jal FUNCAO_INSERIR 		#//Chama a função para inserir o elemento
-		bne $19, $0, DESVIA_ALTERA_PRIMEIRO
+		bne $19, $zero, DESVIA_ALTERA_PRIMEIRO
 		    la $8, ($25)
 		DESVIA_ALTERA_PRIMEIRO:
 		#IMPRIME MENSAGEM PEDINDO ELEMENTO
@@ -68,7 +75,7 @@ main:
 		syscall
 		#IMPRIME O INDICE
         li	$v0, 1
-		add $a0, $19 ,$0                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		add $a0, $19 ,$zero                        #//COPIA PARA O $a0 o inteiro a ser imprimido
 		syscall
 		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
         li	$v0, 4
@@ -115,7 +122,7 @@ main:
 	la $14, ($24)#//INFORMAÇÃO
 	la $15, ($25)#//ENDEREÇO DA LISTA
 	#SE FOR O PRIMEIRO A SER INSERIDO
-	bne $9,$0, DESVIO_OPC1_IF1
+	bne $9,$zero, DESVIO_OPC1_IF1
 		#COMEÇA A ALOCAR
 		li $v0, 9
 		li $a0, 8
@@ -126,12 +133,15 @@ main:
         sw $zero,4($23) 	#//O PRÓXIMO ELEMENTO DA LISTA É NULO QUE NESTE CASO É ZERO
         addi $9,$9,1		#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
         la $25, ($23)
-        add $19, $0,$0      #//O INDICE DE RETORNO INSERIDO É 0 NESTE CASO
+        add $19, $zero,$zero      #//O INDICE DE RETORNO INSERIDO É 0 NESTE CASO
         j FINAL_DOS_IFS_OPC1
 	DESVIO_OPC1_IF1:
 	#SE FOR MENOR QUE O PRIMEIRO
-	lw $12, 0($15)			#//MESMO QUE NÃO EXISTA INFORMAÇÕES ELE CARREGA NO REGISTRADOR 12 O VALOR CONTIDO NO PRIMEIRO ELEMENTO DA LISTA
-	slt $12, $14, $12 		#//SETA O REGISTRADOR 12 COMO 1 SE O PRIMEIRO ELEMENTO DA LISTA FORMENOR QUE ELE
+	lw $13, 0($15)			#//MESMO QUE NÃO EXISTA INFORMAÇÕES ELE CARREGA NO REGISTRADOR 12 O VALOR CONTIDO NO PRIMEIRO ELEMENTO DA LISTA
+	slt $12, $14, $13 		#//SETA O REGISTRADOR 12 COMO 1 SE O PRIMEIRO ELEMENTO DA LISTA FORMENOR QUE ELE
+	bne $13, $14, OU_EH_IGUAL
+	    addi $12, $zero, 1
+	OU_EH_IGUAL:
 	beq $12, $zero, DESVIO_OPC1_IF2         #//SE O SLT DEU FALSO ELE DESVIA
 	    #COMEÇA A ALOCAR
 		li $v0, 9
@@ -149,7 +159,7 @@ main:
         la $15, ($13)            #//ATUALIZA O NOVO PRIMEIRO ELEMENTO
         sw $17, 4($15)           #//COLOCA O ANTIGO PRIMEIRO ELEMENTO DA LISTA COMO PRÓXIMO DO NOVO PRIMEIRO
         addi $9, $9, 1			#//ATUALIZA O CONTADOR DE QUANTOS ELEMENTOS NA LISTA
-        add $19, $0,$0      	#//O INDICE DE RETORNO INSERIDO É 0 NESTE CASO
+        add $19, $zero,$zero      	#//O INDICE DE RETORNO INSERIDO É 0 NESTE CASO
         la $25, ($15)
         j FINAL_DOS_IFS_OPC1
 	DESVIO_OPC1_IF2:
@@ -165,12 +175,11 @@ main:
 		la $18, ($15)            #//CARREGA PARA O REG 18 UMA CÓPIA DO PRIMEIRO ELEMENTO DA LISTA
 		add $19, $zero, $zero    #//ESTE REGISTRADOR GUARDA O NÚMERO DE ITERAÇÕES
 		add $23, $zero, $zero
-FOR_1:  slt $12, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
-		beq $12, $zero, DESVIO_OPC1_FOR
+FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
+		beq $20, $zero, DESVIO_OPC1_FOR
 			lw $10, 0($18)
-			slt $12, $10, $14
-			
-			beq $12, $zero, DESVIO_OPC1_SET
+			slt $20, $10, $14
+			beq $20, $zero, DESVIO_OPC1_SET
 			    addi $23, $23, 1
 				la $11, ($18)
 			DESVIO_OPC1_SET:
@@ -280,7 +289,7 @@ FOR_1:  slt $12, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		syscall
 		#IMPRIME O ELEMENTO
         li	$v0, 1
-		add $a0, $14 ,$0                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		add $a0, $14 ,$zero                        #//COPIA PARA O $a0 o inteiro a ser imprimido
 		syscall
 		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
         li	$v0, 4
