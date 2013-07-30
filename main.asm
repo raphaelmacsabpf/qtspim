@@ -6,6 +6,7 @@ SSS_3:  .asciiz     "Elemento "
 SSS_4:  .asciiz     "\n"
 SSS_5:  .asciiz     "Elemento inserido no indice "
 SSS_6:  .asciiz     "Digite o indice do item que voce quer remover da lista\n"
+SSS_7:  .asciiz     "Digite o valor do item que voce quer remover da lista\n"
 #TEMPORARIOS
 SSS_T1:  .asciiz     "Entrou na função\n"
 
@@ -81,7 +82,7 @@ main:
         li	$v0, 4
 		la	$a0, SSS_6
 		syscall
-		#LE O ITEM DA LISTA A SER INSERIDO E GUARDA NO REGISTRADOR $4
+		#LE O INDICE DA LISTA A SER REMOVIDO E GUARDA NO REGISTRADOR $4
 		li	$v0, 5
 		syscall
 		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
@@ -89,7 +90,16 @@ main:
         jal FUNCAO_REMOVER_INDICE
 		j PRINTA_MENU
     OPCAO_3:#//REmover por valor
-		#code
+		#IMPRIME MENSAGEM PEDINDO VALOR
+        li	$v0, 4
+		la	$a0, SSS_7
+		syscall
+		#LE O ITEM DA LISTA A SER REMOVIDO E GUARDA NO REGISTRADOR $4
+		li	$v0, 5
+		syscall
+		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
+        la $25,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
+        jal FUNCAO_REMOVER_VALOR
 		j PRINTA_MENU
     OPCAO_4:#//Imprimir
 		la	$25, ($8)
@@ -184,7 +194,11 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 	FUNCAO_REMOVER_INDICE:
 	    la $21, ($24)#//INDICE
 		la $22, ($25)#//ENDEREÇO DA LISTA
-		
+		addi $13, $21, -1
+		slt $13, $21, $9                        #//COMPARAÇÃO SE O INDICE FOR MAIOR QUE O NUMERO DE ITENS
+		bne $13, $zero, NAO_MAIOR
+			jr $ra
+		NAO_MAIOR:
 		beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
 		la $13, ($22)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
 		add $17, $zero, $zero                 #//Registrador 17 será o contador de iteradas
@@ -207,8 +221,9 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		FINAL_DA_PESQUISA:
 		beq $13,$22, DESVIO_REMOVE_FIRST            #//DESVIA PARA A OPÇÃO DE REMOVER O PRIMEIRO DA LISTA
 		lw $17, 4($13)
-		beq $17, $zero, DESVIO_REMOVE_LAST
-		j FIM_IFS_OPC2
+		beq $17, $zero, DESVIO_REMOVE_LAST          #//DESVIA PARA A OPÇÃO DE REMOVER O ULTIMO DA LISTA
+		#//AQUI É O ELSE OU SEJA REMOVER DOMEIO
+		j ELSE_OPC2
 		
 		DESVIO_REMOVE_FIRST:
 		lw $17, 4($22)
@@ -225,9 +240,22 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 			j LACO_OPC2_REMOVE_LAST                             #//RETORNA PARA O INICIO DO LACO
 			FINAL_DA_PESQUISA_REMOVE_LAST:
 			sw $zero, 4($12)
+			addi $9, $9 -1
 		j FIM_IFS_OPC2
+		
+		ELSE_OPC2: #//É PARA REMOVER QUALQUER OUTRO NÃO SENDO O PRIMEIRO E NEM O ÚLTIMO
+        	la $12, ($22)
+            LACO_OPC2_REMOVE_OUTRO:
+		    lw $15, 4($12)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
+	    	beq $15, $13 FINAL_DA_PESQUISA_REMOVE_OUTRO          #//ENCONTROU O ENDEREÇO DESEJADO
+			la $12, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+			j LACO_OPC2_REMOVE_OUTRO                             #//RETORNA PARA O INICIO DO LACO
+			FINAL_DA_PESQUISA_REMOVE_OUTRO:
+			lw $23, 4($13)
+			sw $23, 4($12)										#//ATUALIZA NODO->PREVIOUS->NEXT
+			addi $9, $9 -1
 		FIM_IFS_OPC2:
-		addi $9, $9 -1
+
 		
 	FIM_REMOCAO:
 		
@@ -264,7 +292,7 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 	FINAL_DO_IMPRIMIR:
 	jr $ra
 	
-	
+
 	PRINTA_LISTA_VAZIA:
  	#IMPRIME MENSAGEM DE LISTA VAZIA
         li	$v0, 4
@@ -272,3 +300,75 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		syscall
 		jr $ra
 	#FINAL DA FUNÇÃO DE IMPRIMIR
+	
+	
+	
+	FUNCAO_REMOVER_INFO:
+	    la $21, ($24)#//INFO
+		la $22, ($25)#//ENDEREÇO DA LISTA
+		addi $13, $21, -1
+		slt $13, $21, $9                        #//COMPARAÇÃO SE O INDICE FOR MAIOR QUE O NUMERO DE ITENS
+		bne $13, $zero, NAO_MAIOR_OPC3
+			jr $ra
+		NAO_MAIOR_OPC3:
+		beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
+		la $13, ($22)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
+		add $17, $zero, $zero                 #//Registrador 17 será o contador de iteradas
+		addi $12, $zero, 1                      #//CARREGA VALOR 1 PARA VERIFICAR SE SO TEM UMELEMTO
+	    bne $9, $12,FIM_BNE_OPC3_1           #//VERIFICA SE A LISTA SO TEM UM ELEMENTO
+	    bne $21, $zero, FIM_BNE_OPC3_1       #//E VERIFICA TAMBÉM SE O INDICE É ZERO
+			sw $zero, 0($22)                        #//COLOCA 0 COMO INFORMAÇÃO DA LISTA
+			sw $zero, 4($22)                        #//COLOCA 0 COMO PROXIMO DALISTA DA LISTA
+			addi $9, $9, -1                         #//DECREMENTA O CONTADOR DE ITENS
+			j FIM_REMOCAO_OPC3
+        FIM_BNE_OPC3_1:
+		LACO_OPC3:
+			lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
+		    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
+	    	beq $21, $17 FINAL_DA_PESQUISA_OPC3          #//ENCONTROU O ENDEREÇO DESEJADO
+			beq $15, $zero, FINAL_DA_PESQUISA_OPC3      #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
+			la $13, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+			addi $17, $17, 1
+			j LACO_OPC3                             #//RETORNA PARA O INICIO DO LACO
+		FINAL_DA_PESQUISA_OPC3:
+		beq $13,$22, DESVIO_REMOVE_FIRST_OPC3            #//DESVIA PARA A OPÇÃO DE REMOVER O PRIMEIRO DA LISTA
+		lw $17, 4($13)
+		beq $17, $zero, DESVIO_REMOVE_LAST_OPC3          #//DESVIA PARA A OPÇÃO DE REMOVER O ULTIMO DA LISTA
+		#//AQUI É O ELSE OU SEJA REMOVER DOMEIO
+		j ELSE_OPC3
+
+		DESVIO_REMOVE_FIRST_OPC3:
+		lw $17, 4($22)
+		la $8, ($17)
+		addi $9, $9 -1
+        j FIM_IFS_OPC3
+
+		DESVIO_REMOVE_LAST_OPC3:
+			la $12, ($22)
+            LACO_OPC3_REMOVE_LAST:
+		    lw $15, 4($12)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
+	    	beq $15, $13 FINAL_DA_PESQUISA_REMOVE_LAST_OPC3          #//ENCONTROU O ENDEREÇO DESEJADO
+			la $12, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+			j LACO_OPC3_REMOVE_LAST                             #//RETORNA PARA O INICIO DO LACO
+			FINAL_DA_PESQUISA_REMOVE_LAST_OPC3:
+			sw $zero, 4($12)
+			addi $9, $9 -1
+		j FIM_IFS_OPC3
+
+		ELSE_OPC3: #//É PARA REMOVER QUALQUER OUTRO NÃO SENDO O PRIMEIRO E NEM O ÚLTIMO
+        	la $12, ($22)
+            LACO_OPC3_REMOVE_OUTRO:
+		    lw $15, 4($12)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
+	    	beq $15, $13 FINAL_DA_PESQUISA_REMOVE_OUTRO_OPC3          #//ENCONTROU O ENDEREÇO DESEJADO
+			la $12, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
+			j LACO_OPC3_REMOVE_OUTRO                             #//RETORNA PARA O INICIO DO LACO
+			FINAL_DA_PESQUISA_REMOVE_OUTRO_OPC3:
+			lw $23, 4($13)
+			sw $23, 4($12)										#//ATUALIZA NODO->PREVIOUS->NEXT
+			addi $9, $9 -1
+		FIM_IFS_OPC3:
+
+
+	FIM_REMOCAO_OPC3:
+
+	jr $ra
