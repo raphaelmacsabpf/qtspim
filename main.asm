@@ -165,12 +165,12 @@ main:
 		la $18, ($15)            #//CARREGA PARA O REG 18 UMA CÓPIA DO PRIMEIRO ELEMENTO DA LISTA
 		add $19, $zero, $zero    #//ESTE REGISTRADOR GUARDA O NÚMERO DE ITERAÇÕES
 		add $23, $zero, $zero
-FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
-		beq $20, $zero, DESVIO_OPC1_FOR
+FOR_1:  slt $12, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
+		beq $12, $zero, DESVIO_OPC1_FOR
 			lw $10, 0($18)
-			slt $20, $10, $14
+			slt $12, $10, $14
 			
-			beq $20, $zero, DESVIO_OPC1_SET
+			beq $12, $zero, DESVIO_OPC1_SET
 			    addi $23, $23, 1
 				la $11, ($18)
 			DESVIO_OPC1_SET:
@@ -303,32 +303,19 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 	
 	
 	
-	FUNCAO_REMOVER_INFO:
+	FUNCAO_REMOVER_VALOR:
 	    la $21, ($24)#//INFO
 		la $22, ($25)#//ENDEREÇO DA LISTA
-		addi $13, $21, -1
-		slt $13, $21, $9                        #//COMPARAÇÃO SE O INDICE FOR MAIOR QUE O NUMERO DE ITENS
-		bne $13, $zero, NAO_MAIOR_OPC3
-			jr $ra
 		NAO_MAIOR_OPC3:
 		beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
 		la $13, ($22)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
-		add $17, $zero, $zero                 #//Registrador 17 será o contador de iteradas
-		addi $12, $zero, 1                      #//CARREGA VALOR 1 PARA VERIFICAR SE SO TEM UMELEMTO
-	    bne $9, $12,FIM_BNE_OPC3_1           #//VERIFICA SE A LISTA SO TEM UM ELEMENTO
-	    bne $21, $zero, FIM_BNE_OPC3_1       #//E VERIFICA TAMBÉM SE O INDICE É ZERO
-			sw $zero, 0($22)                        #//COLOCA 0 COMO INFORMAÇÃO DA LISTA
-			sw $zero, 4($22)                        #//COLOCA 0 COMO PROXIMO DALISTA DA LISTA
-			addi $9, $9, -1                         #//DECREMENTA O CONTADOR DE ITENS
-			j FIM_REMOCAO_OPC3
         FIM_BNE_OPC3_1:
 		LACO_OPC3:
 			lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
 		    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
-	    	beq $21, $17 FINAL_DA_PESQUISA_OPC3          #//ENCONTROU O ENDEREÇO DESEJADO
-			beq $15, $zero, FINAL_DA_PESQUISA_OPC3      #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
+	    	beq $21, $14 FINAL_DA_PESQUISA_OPC3          #//ENCONTROU O ENDEREÇO DESEJADO
+			beq $15, $zero, FIM_REMOCAO_OPC3      #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
 			la $13, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
-			addi $17, $17, 1
 			j LACO_OPC3                             #//RETORNA PARA O INICIO DO LACO
 		FINAL_DA_PESQUISA_OPC3:
 		beq $13,$22, DESVIO_REMOVE_FIRST_OPC3            #//DESVIA PARA A OPÇÃO DE REMOVER O PRIMEIRO DA LISTA
