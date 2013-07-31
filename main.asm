@@ -1,3 +1,6 @@
+#TRABALHO FEITO POR RAPHAEL MACHADO DOS SANTOS
+#E-MAIL raphaelmacsa@gmail.com
+
 	.data
 SSS_0:  .asciiz     "MENU\n           1 - Inserir\n           2 - Remover por indice\n           3 - Remover por valor\n           4 - Listar todos\n           5 - Sair\n"
 SSS_1:  .asciiz     "Digite o item que voce quer inserir na lista\n"
@@ -7,9 +10,12 @@ SSS_4:  .asciiz     "\n"
 SSS_5:  .asciiz     "Elemento inserido no indice "
 SSS_6:  .asciiz     "Digite o indice do item que voce quer remover da lista\n"
 SSS_7:  .asciiz     "Digite o valor do item que voce quer remover da lista\n"
-#TEMPORARIOS
-SSS_T1:  .asciiz     "Entrou na função\n"
-
+SSS_8:  .asciiz     "Nao foi possivel inserir\n"
+SSS_9:  .asciiz     "Indice removido: "
+SSS_10:  .asciiz     "Elemento removido: "
+SSS_11:  .asciiz     "Numero de Insercoes: "
+SSS_12:  .asciiz     "Numero de Remocoes: "
+SSS_13:  .asciiz     "Programa Encerrado, ate a proxima\n"
 
 	.text
 main:
@@ -23,10 +29,6 @@ main:
 		syscall
 	    la $20 ($v0)        #//ESTE ENDEREÇO É SALVO NO REG 20
 	
-	#COMEÇA A ALOCAR O ELEMENTO DE TESTE
-	li $v0, 9
-	li $a0, 8
-	syscall
 	#AQUI JÁ TENHO ELE ALOCADO E O ENDEREÇO EM $v0
 	la $8, ($v0)	 	#//COPIO O ENDEREÇO QUE FOI ALOCADO PARA O INICIO DA LISTA QUE É $8
     sw $zero, 0($8)		#//COLOCA O VALOR ESCOLHIDO COMO PRIMEIRO ELEMENTO DA LISTA
@@ -66,10 +68,19 @@ main:
 		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
         la $25,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
 		jal FUNCAO_INSERIR 		#//Chama a função para inserir o elemento
+		addi $18, $zero, -1
+		bne $19, $18, NAO_IMPRIME_MENOS_1
+		    #IMPRIME MENSAGEM QUE NÃO FOI POSSÍVEL INSERIR
+        	li	$v0, 4
+			la	$a0, SSS_8
+			syscall
+			j PRINTA_MENU
+		NAO_IMPRIME_MENOS_1:
+		jal FUNCAO_INCREMENTA_INSERCOES     #//INCREMENTA O NUMERO DE ITENS QUE FORAM INSERIDOS
 		bne $19, $zero, DESVIA_ALTERA_PRIMEIRO
 		    la $8, ($25)
 		DESVIA_ALTERA_PRIMEIRO:
-		#IMPRIME MENSAGEM PEDINDO ELEMENTO
+		#IMPRIME MENSAGEM ELEMENTO
         li	$v0, 4
 		la	$a0, SSS_5
 		syscall
@@ -95,6 +106,27 @@ main:
 		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
         la $25,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
         jal FUNCAO_REMOVER_INDICE
+		addi $17, $zero, -1
+		beq $17, $24, REMOVEU_2
+		    lw $11, 0($20)
+		    lw $12, 4($20)
+			beq $11, $12, NAO_DEIXA_ULTRAPASSAR_2
+            	jal FUNCAO_INCREMENTA_REMOCOES
+            NAO_DEIXA_ULTRAPASSAR_2:
+		REMOVEU_2:
+        #IMPRIME MENSAGEM ELEMENTO
+        li	$v0, 4
+		la	$a0, SSS_10
+		syscall
+		#IMPRIME O INDICE
+        li	$v0, 1
+		add $a0, $24 ,$zero                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		syscall
+		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
+        li	$v0, 4
+		la	$a0, SSS_4
+		syscall
+        
 		j PRINTA_MENU
     OPCAO_3:#//REmover por valor
 		#IMPRIME MENSAGEM PEDINDO VALOR
@@ -107,12 +139,66 @@ main:
 		add	$24, $zero, $v0 		#//O REGISTRADOR 4 JÁ VAI SERVIR COMO PASSAGEM DE PARÂMETROS
         la $25,($8)				#//O REGISTRADOR 5 RECEBERÁ UM APONTAMENTO PARA O PRIMEIRO ELEMENTO DA LISTA (PASSAGEM DE PARAMETRO)
         jal FUNCAO_REMOVER_VALOR
+        addi $17, $zero, -1
+		beq $17, $24, REMOVEU_3
+		    lw $11, 0($20)
+		    lw $12, 4($20)
+			beq $11, $12, NAO_DEIXA_ULTRAPASSAR_3
+            	jal FUNCAO_INCREMENTA_REMOCOES
+            NAO_DEIXA_ULTRAPASSAR_3:
+
+		REMOVEU_3:
+         #IMPRIME MENSAGEM ELEMENTO
+        li	$v0, 4
+		la	$a0, SSS_9
+		syscall
+		#IMPRIME O INDICE
+        li	$v0, 1
+		add $a0, $24 ,$zero                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		syscall
+		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
+        li	$v0, 4
+		la	$a0, SSS_4
+		syscall
 		j PRINTA_MENU
     OPCAO_4:#//Imprimir
 		la	$25, ($8)
 		jal FUNCAO_IMPRIMIR
 		j PRINTA_MENU
     OPCAO_5:#//Sair do programa
+		lw $11, 0($20)
+		lw $12, 4($20)
+        #IMPRIME MENSAGEM INSERCOES
+        li	$v0, 4
+		la	$a0, SSS_11
+		syscall
+		#IMPRIME O INDICE
+        li	$v0, 1
+		add $a0, $11 ,$zero                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		syscall
+		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
+        li	$v0, 4
+		la	$a0, SSS_4
+		syscall
+		
+		#IMPRIME MENSAGEM REMOCOES
+        li	$v0, 4
+		la	$a0, SSS_12
+		syscall
+		#IMPRIME O INDICE
+        li	$v0, 1
+		add $a0, $12 ,$zero                        #//COPIA PARA O $a0 o inteiro a ser imprimido
+		syscall
+		#IMPRIME o \n APÓS O ELEMENTO (APENAS FORMATAÇÃO)
+        li	$v0, 4
+		la	$a0, SSS_4
+		syscall
+    
+        #IMPRIME MENSAGEM DE SAIDA
+        li	$v0, 4
+		la	$a0, SSS_13
+		syscall
+    
 		li	$v0, 10								#//Finaliza o programa
 		syscall
 	
@@ -175,11 +261,11 @@ main:
 		la $18, ($15)            #//CARREGA PARA O REG 18 UMA CÓPIA DO PRIMEIRO ELEMENTO DA LISTA
 		add $19, $zero, $zero    #//ESTE REGISTRADOR GUARDA O NÚMERO DE ITERAÇÕES
 		add $23, $zero, $zero
-FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
-		beq $20, $zero, DESVIO_OPC1_FOR
+FOR_1:  slt $12, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJA MENOR QUE 9 (PARA CHECAR DESVIO DO FOR)
+		beq $12, $zero, DESVIO_OPC1_FOR
 			lw $10, 0($18)
-			slt $20, $10, $14
-			beq $20, $zero, DESVIO_OPC1_SET
+			slt $12, $10, $14
+			beq $12, $zero, DESVIO_OPC1_SET
 			    addi $23, $23, 1
 				la $11, ($18)
 			DESVIO_OPC1_SET:
@@ -206,8 +292,14 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		addi $13, $21, -1
 		slt $13, $21, $9                        #//COMPARAÇÃO SE O INDICE FOR MAIOR QUE O NUMERO DE ITENS
 		bne $13, $zero, NAO_MAIOR
+			addi $24, $zero, -1
 			jr $ra
 		NAO_MAIOR:
+		slt $13, $21, $zero                        #//COMPARAÇÃO SE O INDICE FOR MENOR QUE ZERO
+		beq $13, $zero, NAO_NEGATIVO
+			addi $24, $zero, -1
+			jr $ra
+		NAO_NEGATIVO:
 		beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
 		la $13, ($22)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
 		add $17, $zero, $zero                 #//Registrador 17 será o contador de iteradas
@@ -267,17 +359,12 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 
 		
 	FIM_REMOCAO:
-		
+		la $24, ($14)
 	jr $ra
 	
 	
 	FUNCAO_IMPRIMIR:
 	la $16, ($25)#//ENDEREÇO DA LISTA
-	                            #debug
-							    li	$v0, 4
-								la	$a0, SSS_T1
-								syscall
-								#fim do debug SÓ PARA SABER SE ENTROU NA FUNÇÃO
 	beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
 	la $13, ($16)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
 	LACO_OPC4:
@@ -313,9 +400,10 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 	
 	
 	FUNCAO_REMOVER_VALOR:
+		addi $17, $zero, -1          #//APENAS PARA SABER SE HOUVE REMOÇÃO
 	    la $21, ($24)#//INFO
 		la $22, ($25)#//ENDEREÇO DA LISTA
-		NAO_MAIOR_OPC3:
+		add $11, $zero, $zero                  #//CONTADOR DE ITERADAS
 		beq $9, $zero, PRINTA_LISTA_VAZIA      #//DESVIA PARA IMPRIMIR A LISTA SE A QUANTIDADE DE ELEMENTOS FOR 0
 		la $13, ($22)		                   #//COPIA O INICIO DA LISTA PARA O REG AUXILIAR 13
         FIM_BNE_OPC3_1:
@@ -323,6 +411,7 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 			lw $14, 0($13)                          #//CARREGA A INFORMAÇÃO DO NODO PARA O REG 14
 		    lw $15, 4($13)                          #//CARREGA O ENDEREÇO DO PROXIMO PARA O REG 15
 	    	beq $21, $14 FINAL_DA_PESQUISA_OPC3          #//ENCONTROU O ENDEREÇO DESEJADO
+			addi $11, $11, 1
 			beq $15, $zero, FIM_REMOCAO_OPC3      #//SE O ENDEREÇO DO PROXIMO ELEMENTO FOR 0 ELE DESVIARÁ
 			la $13, ($15)		                    #//COPIA O ELEMENTO PARA O PROXIMO PAR AO REG AUXILIAR 13
 			j LACO_OPC3                             #//RETORNA PARA O INICIO DO LACO
@@ -334,9 +423,10 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 		j ELSE_OPC3
 
 		DESVIO_REMOVE_FIRST_OPC3:
-		lw $17, 4($22)
-		la $8, ($17)
+		lw $26, 4($22)
+		la $8, ($26)
 		addi $9, $9 -1
+		add $17, $zero, $zero          #//APENAS PARA SABER SE HOUVE REMOÇÃO
         j FIM_IFS_OPC3
 
 		DESVIO_REMOVE_LAST_OPC3:
@@ -349,6 +439,7 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 			FINAL_DA_PESQUISA_REMOVE_LAST_OPC3:
 			sw $zero, 4($12)
 			addi $9, $9 -1
+			add $17, $zero, $zero          #//APENAS PARA SABER SE HOUVE REMOÇÃO
 		j FIM_IFS_OPC3
 
 		ELSE_OPC3: #//É PARA REMOVER QUALQUER OUTRO NÃO SENDO O PRIMEIRO E NEM O ÚLTIMO
@@ -362,9 +453,27 @@ FOR_1:  slt $20, $19, $9         #//SETA REG 20 COMO 1 CASO O REGISTRADOR 19 SEJ
 			lw $23, 4($13)
 			sw $23, 4($12)										#//ATUALIZA NODO->PREVIOUS->NEXT
 			addi $9, $9 -1
+			add $17, $zero, $zero          #//APENAS PARA SABER SE HOUVE REMOÇÃO
 		FIM_IFS_OPC3:
-
-
 	FIM_REMOCAO_OPC3:
-
+	beq $17, $zero, HOUVE_REMOCAO
+	    addi $11, $zero, -1
+	HOUVE_REMOCAO:
+	la $24, ($11)
 	jr $ra
+	
+	
+	
+	
+	FUNCAO_INCREMENTA_INSERCOES:
+	    lw $12 0($20)
+	    addi $12, $12, 1
+	    sw $12, 0($20)
+	jr $ra
+	
+	FUNCAO_INCREMENTA_REMOCOES:
+	    lw $12 4($20)
+	    addi $12, $12, 1
+	    sw $12, 4($20)
+	jr $ra
+	
